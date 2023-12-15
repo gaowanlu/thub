@@ -5,34 +5,37 @@ import { useEffect } from 'react';
 let platforms;
 let player;
 let cursors;
-let stars;
-let score = 0;
-let scoreText;
+// let stars;
+// let score = 0;
+// let scoreText;
 let dogs;
 let gameOver = false;
+let beds1;
+let beds2;
+let beds3;
 
-function collectStar(player, star) {
-  star.disableBody(true, true);
+// function collectStar(player, star) {
+//   star.disableBody(true, true);
 
-  score += 10;
-  scoreText.setText('Score: ' + score);
+//   score += 10;
+//   scoreText.setText('Score: ' + score);
 
-  if (stars.countActive(true) === 0) {
-    stars.children.iterate(function (child) {
+//   if (stars.countActive(true) === 0) {
+//     stars.children.iterate(function (child) {
 
-      child.enableBody(true, child.x, child.y, true, true);
+//       child.enableBody(true, child.x, child.y, true, true);
 
-    });
+//     });
 
-    var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+//     var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
 
-    var dog = dogs.create(x, 16, 'dog');
-    dog.setBounce(1);
-    dog.setCollideWorldBounds(true);
-    //dog.setVelocity(Phaser.Math.Between(-200, 200), 20);
-  }
+//     var dog = dogs.create(x, 16, 'dog');
+//     dog.setBounce(1);
+//     dog.setCollideWorldBounds(true);
+//     //dog.setVelocity(Phaser.Math.Between(-200, 200), 20);
+//   }
 
-}
+// }
 
 function hitdog(player, dog) {
   this.physics.pause();
@@ -50,11 +53,12 @@ function App() {
       type: Phaser.AUTO,
       width: 800,
       height: 600,
+      backgroundColor: "#ffffff",
       physics: {
         default: 'arcade',
         arcade: {
-          //gravity: { y: 0 },
-          debug: true
+          //gravity: { y: 300 },
+          debug: false
         }
       },
       scene: {
@@ -78,6 +82,8 @@ function App() {
       this.load.image("ground", "assets/ground.png", { frameWidth: 800, frameHeight: 60 });
       this.load.image("star", "assets/star.png");
       this.load.image("dog", "assets/dog.png");
+      this.load.image("bed", "assets/bed.png");
+      this.load.image("dark_sky", "assets/dark_sky.png");
     }
 
     // 创建场景
@@ -88,17 +94,36 @@ function App() {
 
       // 静态物体缩放需要refreshBody
       //platforms.create(200, 258, 'sample_character_08').setScale(1).refreshBody();
-      platforms.create(400, 600 - 30, 'ground').setScale(1).refreshBody();
+      //platforms.create(400, 600 - 30, 'ground').setScale(1).refreshBody();
       //platforms.create(300, 100, 'sample_character_08').setScale(2).refreshBody();
       //platforms.create(400, 300, 'sample_character_08').setScale(2).refreshBody();
+      platforms.create(400, 62, 'dark_sky');
 
+      beds1 = this.physics.add.staticGroup({
+        key: 'bed',
+        repeat: 6,
+        setXY: { x: 40, y: 180, stepX: 120, stepY: 0 }
+      });
+
+      beds2 = this.physics.add.staticGroup({
+        key: 'bed',
+        repeat: 6,
+        setXY: { x: 40, y: 360, stepX: 120, stepY: 0 }
+      });
+
+
+      beds3 = this.physics.add.staticGroup({
+        key: 'bed',
+        repeat: 5,
+        setXY: { x: 140, y: 560, stepX: 100, stepY: 0 }
+      });
 
       // 添加动态物体
-      player = this.physics.add.sprite(100, 100, 'sample_character_08').setScale(1.3).refreshBody();
+      player = this.physics.add.sprite(400, 300, 'sample_character_08').setScale(1.3).refreshBody();
 
-      player.setBounce(0.2);// 反弹值
+      player.setBounce(0.3);// 反弹值
       player.setCollideWorldBounds(true);// 与边界碰撞
-      player.body.setGravityY(0);//重力
+      //player.body.setGravityY(6000);//重力
       //this.physics.world.disable(player);
 
 
@@ -144,6 +169,9 @@ function App() {
 
       // 检测之间的碰撞与重叠事件
       this.physics.add.collider(player, platforms);
+      this.physics.add.collider(player, beds1);
+      this.physics.add.collider(player, beds2);
+      this.physics.add.collider(player, beds3);
 
       // 键盘
       cursors = this.input.keyboard.createCursorKeys();
@@ -152,21 +180,20 @@ function App() {
       cursors.s = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
       cursors.d = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
 
+      // stars = this.physics.add.group({
+      //   key: 'star',
+      //   repeat: 6,
+      //   setXY: { x: 42, y: 40, stepX: 70, stepY: 10 },
+      // });
 
-      stars = this.physics.add.group({
-        key: 'star',
-        repeat: 6,
-        setXY: { x: 42, y: 40, stepX: 70, stepY: 10 },
-      });
+      // stars.children.iterate((child) => {
+      //   child.setScale(0.2);
+      //   child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+      // });
+      // this.physics.add.collider(player, platforms);
+      // this.physics.add.overlap(player, stars, collectStar, null, this);
 
-      stars.children.iterate((child) => {
-        child.setScale(0.2);
-        child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
-      });
-      this.physics.add.collider(player, platforms);
-      this.physics.add.overlap(player, stars, collectStar, null, this);
-
-      scoreText = this.add.text(16, 506, 'score: 0', { fontSize: '32px', fill: '#ffff99' });
+      // scoreText = this.add.text(16, 506, 'score: 0', { fontSize: '32px', fill: '#ffff99' });
 
       //炸弹
       dogs = this.physics.add.group();
@@ -203,7 +230,6 @@ function App() {
         player.setVelocityX(0);
         player.setVelocityY(0);
         player.anims.stop();
-        //player.anims.play('turn');
       }
 
       // if (cursors.w.isDown && player.body.touching.down) {
