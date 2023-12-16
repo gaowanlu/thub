@@ -1,6 +1,8 @@
 import './App.css';
 import Phaser from "phaser";
 import { useEffect } from 'react';
+import WS from "./ws/WS";
+//import Protocol from "./protocol/Protocol";
 
 let platforms;
 let player;
@@ -13,6 +15,14 @@ let gameOver = false;
 let beds1;
 let beds2;
 let beds3;
+let lastTick = null;
+let ExistMove = false;
+let LogicFrame = {
+  Data: [],
+  Num: 0
+};
+
+WS.connect();
 
 // function collectStar(player, star) {
 //   star.disableBody(true, true);
@@ -71,6 +81,19 @@ function App() {
           target: document.body,
         },
       },
+    };
+
+    WS.open = (event) => {
+      console.log(event);
+    };
+    WS.close = (event) => {
+      console.log(event);
+    };
+    WS.message = (event) => {
+      //console.log(event);
+    };
+    WS.error = (event) => {
+      console.log(event);
     };
 
     //创建游戏实例
@@ -204,32 +227,57 @@ function App() {
     // 更新游戏状态
     function update() {
       // 在每一帧执行的逻辑
+      let currTime = new Date();
+      if (!lastTick) {
+        lastTick = currTime;
+      } else if (currTime < lastTick) {
+        lastTick = currTime;
+      }
+      // 逻辑帧率25
+      if (currTime - lastTick >= 40) {
+        lastTick = currTime;
+        if (LogicFrame.Data.length > 0) {
+          WS.send(JSON.stringify(LogicFrame));
+          LogicFrame.Data = [];
+          LogicFrame.Num++;
+        }
+      }
+
       // console.log("tick");
       const velocityCfg = 150;
       if (cursors.a.isDown) {
         player.setVelocityX(-velocityCfg);
 
         player.anims.play('left', true);
+        //WS.send("left");
+        ExistMove = true;
       }
       else if (cursors.d.isDown) {
         player.setVelocityX(velocityCfg);
 
         player.anims.play('right', true);
+        //WS.send("right");
+        ExistMove = true;
       }
       else if (cursors.w.isDown) {
         player.setVelocityY(-velocityCfg);
 
         player.anims.play('up', true);
+        //WS.send("up");
+        ExistMove = true;
       }
       else if (cursors.s.isDown) {
         player.setVelocityY(velocityCfg);
 
         player.anims.play('down', true);
+        //WS.send("down");
+        ExistMove = true;
       }
       else {
         player.setVelocityX(0);
         player.setVelocityY(0);
         player.anims.stop();
+        ExistMove = false;
       }
 
       // if (cursors.w.isDown && player.body.touching.down) {
@@ -239,7 +287,17 @@ function App() {
       if (gameOver) {
         game.destroy(true);
       }
+
+      if (ExistMove) {
+        // 缓存Player逻辑帧
+        LogicFrame.Data.push({
+          x: parseInt(player.x),
+          y: parseInt(player.y)
+        });
+      }
+
     }
+
 
     // 在组件卸载时销毁游戏实例
     return () => {
