@@ -17,10 +17,14 @@ let beds2;
 let beds3;
 let lastTick = null;
 let ExistMove = false;
+let frame = 0;
 let LogicFrame = {
   Data: [],
   Num: 0
 };
+let MessageQueue = [];
+const playerUID = Math.random().toString();
+let Players = {};
 
 WS.connect();
 
@@ -83,6 +87,9 @@ function App() {
       },
     };
 
+    //创建游戏实例
+    const game = new Phaser.Game(config);
+
     WS.open = (event) => {
       console.log(event);
     };
@@ -91,13 +98,12 @@ function App() {
     };
     WS.message = (event) => {
       //console.log(event);
+      MessageQueue.push(JSON.parse(event.data));
+      //console.log(MessageQueue);
     };
     WS.error = (event) => {
       console.log(event);
     };
-
-    //创建游戏实例
-    const game = new Phaser.Game(config);
 
     // 预加载资源
     function preload() {
@@ -148,7 +154,7 @@ function App() {
       player.setCollideWorldBounds(true);// 与边界碰撞
       //player.body.setGravityY(6000);//重力
       //this.physics.world.disable(player);
-
+      Players[playerUID] = { player: player, message: [] };
 
       this.anims.create({
         key: 'left',
@@ -226,6 +232,37 @@ function App() {
 
     // 更新游戏状态
     function update() {
+      // 解析每个数据包抛弃自己的那部分
+      for (let i = 0; i < MessageQueue.length; i++) {
+        let data = MessageQueue[i];
+        if (data.Data && data.Data[0]) {
+          if (data.Data[0].playerUID === playerUID) {
+            continue;
+          }
+          let otherPlayerUID = data.Data[0].playerUID;
+          if (!Players.hasOwnProperty(otherPlayerUID)) {
+            // 创建角色
+            let x = data.Data[0].x;
+            let y = data.Data[0].y;
+            let newPlayer = this.physics.add.sprite(x, y, 'sample_character_08').setScale(1.3).refreshBody();
+            newPlayer.setBounce(0.3);// 反弹值
+            newPlayer.setCollideWorldBounds(true);// 与边界碰撞
+            Players[otherPlayerUID] = { player: newPlayer, message: [] };
+            this.physics.add.collider(newPlayer, platforms);
+            this.physics.add.collider(newPlayer, beds1);
+            this.physics.add.collider(newPlayer, beds2);
+            this.physics.add.collider(newPlayer, beds3);
+          }
+          // 将消息装入对应玩家的message
+          for (let j = 0; j < data.Data.length; j++) {
+            let message = data.Data[j];
+            Players[data.Data[j].playerUID].message.push(message);
+          }
+          //console.log(Players);
+        }
+      }
+      MessageQueue = [];
+
       // 在每一帧执行的逻辑
       let currTime = new Date();
       if (!lastTick) {
@@ -234,7 +271,7 @@ function App() {
         lastTick = currTime;
       }
       // 逻辑帧率25
-      if (currTime - lastTick >= 40) {
+      if (currTime - lastTick >= 60) {
         lastTick = currTime;
         if (LogicFrame.Data.length > 0) {
           WS.send(JSON.stringify(LogicFrame));
@@ -291,9 +328,38 @@ function App() {
       if (ExistMove) {
         // 缓存Player逻辑帧
         LogicFrame.Data.push({
-          x: parseInt(player.x),
-          y: parseInt(player.y)
+          vx: player.body.velocity.x,
+          vy: player.body.velocity.y,
+          x: player.x,
+          y: player.y,
+          frame: frame++,
+          anims: player.anims.currentAnim.key,
+          playerUID: playerUID
         });
+      }
+
+      // 遍历所有player除了自己
+      for (let key in Players) {
+        if (key === playerUID) {
+          continue;
+        }
+        if (Players[key].message.length <= 0) {
+          Players[key].player.setVelocityX(0);
+          Players[key].player.setVelocityY(0);
+          Players[key].player.anims.stop();
+          continue;
+        }
+        let message = Players[key].message.shift();
+        let gapX = Players[key].player.x - message.x;
+        let gapY = Players[key].player.y - message.y;
+        if (Math.abs(gapX) >= 10 || Math.abs(gapY) >= 10) {
+          Players[key].player.x = message.x;
+          Players[key].player.y = message.y;
+        }
+
+        Players[key].player.setVelocityX(message.vx);
+        Players[key].player.setVelocityY(message.vy);
+        Players[key].player.anims.play(message.anims, true);
       }
 
     }
