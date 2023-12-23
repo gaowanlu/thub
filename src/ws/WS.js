@@ -1,7 +1,7 @@
 const WS = { socket: null, open: null, message: null, close: null, error: null, isConnected: false };
 WS.connect = function () {
     this.isConnected = false;
-    this.socket = new WebSocket("ws://61.171.51.135:20023/");
+    this.socket = new WebSocket("wss://61.171.51.135:20023/");
     this.socket.addEventListener("open", (event) => {
         if (this.open) {
             this.open(event);
