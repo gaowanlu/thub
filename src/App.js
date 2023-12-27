@@ -25,6 +25,11 @@ let LogicFrame = {
 let MessageQueue = [];
 const playerUID = Math.random().toString();
 let Players = {};
+let player_before_frame_x = 0;
+let player_before_frame_y = 0;
+
+const WIDTH = 1820;
+const HEIGHT = 680;
 
 WS.connect();
 
@@ -65,9 +70,9 @@ function App() {
   useEffect(() => {
     const config = {
       type: Phaser.AUTO,
-      width: 800,
-      height: 600,
-      backgroundColor: "#ffffff",
+      width: WIDTH,
+      height: HEIGHT,
+      //backgroundColor: "#ffffff",
       physics: {
         default: 'arcade',
         arcade: {
@@ -108,15 +113,33 @@ function App() {
     // 预加载资源
     function preload() {
       this.load.spritesheet("sample_character_08", "assets/sample_character_08.png", { frameWidth: 14, frameHeight: 24 });
-      this.load.image("ground", "assets/ground.png", { frameWidth: 800, frameHeight: 60 });
-      this.load.image("star", "assets/star.png");
-      this.load.image("dog", "assets/dog.png");
+      // this.load.image("ground", "assets/ground.png", { frameWidth: 800, frameHeight: 60 });
+      // this.load.image("dog", "assets/dog.png");
       this.load.image("bed", "assets/bed.png");
-      this.load.image("dark_sky", "assets/dark_sky.png");
+      // 加载Tiled地图
+      this.load.tilemapTiledJSON({ key: 'map', url: 'assets/map.json' });
+      // 加载地图使用的图块集
+      this.load.image('tiles', 'assets/Atlas/terrain_atlas.png');
     }
 
     // 创建场景
     function create() {
+      // 创建地图
+      let map = this.make.tilemap({ key: 'map' });
+      // 添加图块集到地图
+      let tiles = map.addTilesetImage('terrain_atlas', 'tiles');
+      // console.log(map);
+      // 添加图块层
+      let layer3 = map.createLayer("scene_layer3", tiles, 0, 0);
+      layer3.setCollisionByExclusion([-1]);
+      let layer1 = map.createLayer("scene_layer1", tiles, 0, 0);
+      layer1.setCollisionByExclusion([-1]);
+      let layer2 = map.createLayer("scene_layer2", tiles, 0, 0);
+      layer2.setCollisionByExclusion([-1]);
+      this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+      this.cameras.main.setSize(WIDTH, HEIGHT);
+
+
       //const dude = this.add.image(400, 300, "dude");
       //const sample_character_08 = this.add.image(400, 300, "sample_character_08");
       platforms = this.physics.add.staticGroup();
@@ -126,7 +149,6 @@ function App() {
       //platforms.create(400, 600 - 30, 'ground').setScale(1).refreshBody();
       //platforms.create(300, 100, 'sample_character_08').setScale(2).refreshBody();
       //platforms.create(400, 300, 'sample_character_08').setScale(2).refreshBody();
-      platforms.create(400, 62, 'dark_sky');
 
       beds1 = this.physics.add.staticGroup({
         key: 'bed',
@@ -148,10 +170,12 @@ function App() {
       });
 
       // 添加动态物体
-      player = this.physics.add.sprite(400, 300, 'sample_character_08').setScale(1.3).refreshBody();
+      player_before_frame_x = 200;
+      player_before_frame_y = 200;
+      player = this.physics.add.sprite(player_before_frame_x, player_before_frame_y, 'sample_character_08').setScale(1.3).refreshBody();
 
       player.setBounce(0.3);// 反弹值
-      player.setCollideWorldBounds(true);// 与边界碰撞
+      //player.setCollideWorldBounds(true);// 与边界碰撞
       //player.body.setGravityY(6000);//重力
       //this.physics.world.disable(player);
       Players[playerUID] = { player: player, message: [] };
@@ -280,8 +304,21 @@ function App() {
         }
       }
 
-      // console.log("tick");
+      {
+        let gap_x = player.x - player_before_frame_x;
+        let gap_y = player.y - player_before_frame_y;
+        if (Math.abs(gap_x) > 1) {
+          this.cameras.main.scrollX += gap_x;
+          player_before_frame_x = player.x;
+        }
+        if (Math.abs(gap_y) > 1) {
+          this.cameras.main.scrollY += gap_y;
+          player_before_frame_y = player.y;
+        }
+      }
+
       const velocityCfg = 150;
+
       if (cursors.a.isDown) {
         player.setVelocityX(-velocityCfg);
 
@@ -352,7 +389,7 @@ function App() {
         let message = Players[key].message.shift();
         let gapX = Players[key].player.x - message.x;
         let gapY = Players[key].player.y - message.y;
-        if (Math.abs(gapX) >= 10 || Math.abs(gapY) >= 10) {
+        if (Math.abs(gapX) >= 4 || Math.abs(gapY) >= 4) {
           Players[key].player.x = message.x;
           Players[key].player.y = message.y;
         }

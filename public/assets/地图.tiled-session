@@ -1,0 +1,44 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "地图.json",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "fileStates": {
+        "": {
+            "scaleInDock": 1
+        },
+        "terrain_atlas.tsx": {
+            "scaleInDock": 0.125,
+            "scaleInEditor": 1
+        },
+        "地图.json": {
+            "scale": 0.5,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": -459,
+                "y": 421
+            }
+        },
+        "地图.json#terrain_atlas": {
+            "scaleInDock": 0.33
+        }
+    },
+    "last.exportedFilePath": "C:/Users/gaowanlu/Desktop/MyProject/thub/public/assets",
+    "last.imagePath": "C:/Users/gaowanlu/Desktop/MyProject/thub/public/assets/Atlas",
+    "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
+    "map.lastUsedFormat": "json",
+    "openFiles": [
+        "地图.json",
+        "terrain_atlas.tsx"
+    ],
+    "project": "地图.tiled-project",
+    "recentFiles": [
+        "terrain_atlas.tsx",
+        "地图.json"
+    ],
+    "tileset.lastUsedFormat": "tsx"
+}
