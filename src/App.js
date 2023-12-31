@@ -221,7 +221,7 @@ function App() {
       });
 
       // 检测之间的碰撞与重叠事件
-      this.physics.add.collider(player, platforms);
+      // this.physics.add.collider(player, platforms);
       this.physics.add.collider(player, beds1);
       this.physics.add.collider(player, beds2);
       this.physics.add.collider(player, beds3);
@@ -270,9 +270,9 @@ function App() {
             let y = data.Data[0].y;
             let newPlayer = this.physics.add.sprite(x, y, 'sample_character_08').setScale(1.3).refreshBody();
             newPlayer.setBounce(0.3);// 反弹值
-            newPlayer.setCollideWorldBounds(true);// 与边界碰撞
+            // newPlayer.setCollideWorldBounds(true);// 与边界碰撞
             Players[otherPlayerUID] = { player: newPlayer, message: [] };
-            this.physics.add.collider(newPlayer, platforms);
+            // this.physics.add.collider(newPlayer, platforms);
             this.physics.add.collider(newPlayer, beds1);
             this.physics.add.collider(newPlayer, beds2);
             this.physics.add.collider(newPlayer, beds3);
@@ -380,6 +380,17 @@ function App() {
         if (key === playerUID) {
           continue;
         }
+
+        let otherPlayer = Players[key].player;
+        // Check if the other player is outside the camera's visible bounds
+        const relativeX = otherPlayer.x - this.cameras.main.worldView.x;
+        const relativeY = otherPlayer.y - this.cameras.main.worldView.y;
+        const canBeView = relativeX < 0 || relativeX > this.cameras.main.width ||
+          relativeY < 0 || relativeY > this.cameras.main.height;
+
+        // console.log({ relativeX, relativeY, x: otherPlayer.x, y: otherPlayer.y });
+        otherPlayer.setVisible(!canBeView);
+
         if (Players[key].message.length <= 0) {
           Players[key].player.setVelocityX(0);
           Players[key].player.setVelocityY(0);
