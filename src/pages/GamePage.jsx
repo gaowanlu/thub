@@ -31,6 +31,8 @@ const WIDTH = 1320;
 const HEIGHT = 680;
 let miniMap;
 
+let Objects = [];
+
 WS.connect();
 
 // function collectStar(player, star) {
@@ -120,6 +122,7 @@ function GamePage() {
             this.load.tilemapTiledJSON({ key: 'map', url: 'assets/map.json' });
             // 加载地图使用的图块集
             this.load.image('tiles', 'assets/Atlas/terrain_atlas.png');
+            this.load.spritesheet('tilesetSprite', 'assets/Atlas/terrain_atlas.png', { frameWidth: 32, frameHeight: 32 });
         }
 
         // 创建场景
@@ -136,6 +139,7 @@ function GamePage() {
             layer1.setCollisionByExclusion([-1]);
             let layer2 = map.createLayer("scene_layer2", tiles, 0, 0);
             layer2.setCollisionByExclusion([-1]);
+
             this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
             this.cameras.main.setSize(WIDTH, HEIGHT);
 
@@ -232,6 +236,28 @@ function GamePage() {
             this.physics.add.collider(player, beds2);
             this.physics.add.collider(player, beds3);
 
+
+
+            // Load object layer
+            let objectLayer = map.getObjectLayer('object_layer1');
+
+            if (objectLayer) {
+                // Iterate through objects in the object layer
+                objectLayer.objects.forEach(object => {
+                    // Example: create a sprite at each object's position
+                    let sprite = this.physics.add.sprite(object.x, object.y - 32, 'tilesetSprite', object.gid - 1);
+                    sprite.setOrigin(0, 0);
+                    this.physics.world.enable(sprite);
+                    Objects.push(sprite);
+                });
+            }
+
+
+            Objects.forEach((v, i, arr) => {
+                this.physics.add.collider(player, v);
+            });
+
+
             // 键盘
             cursors = this.input.keyboard.createCursorKeys();
             cursors.w = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
@@ -282,6 +308,11 @@ function GamePage() {
                         this.physics.add.collider(newPlayer, beds1);
                         this.physics.add.collider(newPlayer, beds2);
                         this.physics.add.collider(newPlayer, beds3);
+
+                        Objects.forEach((v, i, arr) => {
+                            this.physics.add.collider(newPlayer, v);
+                        });
+
                     }
                     // 将消息装入对应玩家的message
                     for (let j = 0; j < data.Data.length; j++) {

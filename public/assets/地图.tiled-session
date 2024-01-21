@@ -3,16 +3,17 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "地图.json",
+    "activeFile": "地图.tmx",
     "expandedProjectPaths": [
         "."
     ],
+    "file.lastUsedOpenFilter": "全部文件 (*)",
     "fileStates": {
         "": {
-            "scaleInDock": 1
+            "scaleInDock": 0.33
         },
         "terrain_atlas.tsx": {
-            "scaleInDock": 0.125,
+            "scaleInDock": 0.75,
             "scaleInEditor": 1
         },
         "地图.json": {
@@ -25,20 +26,44 @@
         },
         "地图.json#terrain_atlas": {
             "scaleInDock": 0.33
+        },
+        "地图.tmj": {
+            "scale": 1,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 879.5,
+                "y": 391.5
+            }
+        },
+        "地图.tmj#terrain_atlas": {
+            "scaleInDock": 1.5
+        },
+        "地图.tmx": {
+            "scale": 0.33,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 292.4242424242424,
+                "y": 331.81818181818187
+            }
+        },
+        "地图.tmx#terrain_atlas": {
+            "scaleInDock": 0.33
         }
     },
     "last.exportedFilePath": "C:/Users/gaowanlu/Desktop/MyProject/thub/public/assets",
     "last.imagePath": "C:/Users/gaowanlu/Desktop/MyProject/thub/public/assets/Atlas",
     "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
-    "map.lastUsedFormat": "json",
+    "map.lastUsedFormat": "tmx",
     "openFiles": [
-        "地图.json",
-        "terrain_atlas.tsx"
+        "地图.tmx"
     ],
     "project": "地图.tiled-project",
     "recentFiles": [
+        "地图.tmx",
         "terrain_atlas.tsx",
+        "地图.tmj",
         "地图.json"
     ],
+    "tileset.embedInMap": true,
     "tileset.lastUsedFormat": "tsx"
 }
