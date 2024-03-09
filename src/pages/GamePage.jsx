@@ -1,7 +1,24 @@
 import Phaser from "phaser";
+import React from 'react';
+import { AppBar, Toolbar, Typography } from '@mui/material';
+import LabelBottomNavigation from '../components/LabelBottomNavigation';
+import styled from "styled-components";
+import Footer from "../components/MyFooter";
+import { ThemeProvider } from '@mui/material/styles';
+
 import { useEffect } from 'react';
 import WS from "../ws/WS";
 //import Protocol from "./protocol/Protocol";
+import { createTheme } from '@mui/material/styles';
+
+const theme = createTheme({
+    palette: {
+        primary: {
+            main: '#3131b1e3', // Your desired primary color
+        },
+    },
+});
+
 
 let platforms;
 let player;
@@ -74,6 +91,7 @@ function GamePage() {
             type: Phaser.AUTO,
             width: WIDTH,
             height: HEIGHT,
+            parent: 'phaser-game-container',
             //backgroundColor: "#ffffff",
             physics: {
                 default: 'arcade',
@@ -460,8 +478,29 @@ function GamePage() {
 
     }, []);//仅在组件挂载时运行
     return (
-        <div id="phaser-game-container"></div>
+        <ThemeProvider theme={theme}>
+            <MyAppBar position="static">
+                <Toolbar>
+                    <Typography sx={{ color: "#ffffff" }}><b>TUBEKIT</b></Typography>
+                </Toolbar>
+            </MyAppBar>
+            <MyContainer>
+                <Typography id="phaser-game-container" align="center"></Typography>
+            </MyContainer>
+            <LabelBottomNavigation />
+            <Footer />
+        </ThemeProvider >
     );
 }
+
+const MyAppBar = styled(AppBar)`
+`;
+
+const MyContainer = styled.div`
+    border-radius: 0.5rem;
+    width: 100%;
+    margin-top: 1rem;
+`;
+
 
 export default GamePage;

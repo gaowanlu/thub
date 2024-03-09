@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
-import "./App.css";
+import "./index.css";
 import SuspensePage from "./pages/SuspensePage";
 import HomePage from "./pages/HomePage";
 
