@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "地图.tmx",
+    "activeFile": "",
     "expandedProjectPaths": [
         "."
     ],
@@ -11,6 +11,12 @@
     "fileStates": {
         "": {
             "scaleInDock": 0.33
+        },
+        "#base_out_atlas": {
+            "scaleInDock": 1
+        },
+        "#terrain_atlas": {
+            "scaleInDock": 1
         },
         "terrain_atlas.tsx": {
             "scaleInDock": 0.75,
@@ -39,11 +45,14 @@
             "scaleInDock": 1.5
         },
         "地图.tmx": {
-            "scale": 0.33,
+            "expandedObjectLayers": [
+                7
+            ],
+            "scale": 0.5,
             "selectedLayer": 3,
             "viewCenter": {
-                "x": 292.4242424242424,
-                "y": 331.81818181818187
+                "x": 1063,
+                "y": 815
             }
         },
         "地图.tmx#terrain_atlas": {
@@ -54,6 +63,7 @@
     "last.imagePath": "C:/Users/gaowanlu/Desktop/MyProject/thub/public/assets/Atlas",
     "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
     "map.lastUsedFormat": "tmx",
+    "map.orientation": null,
     "openFiles": [
         "地图.tmx"
     ],
