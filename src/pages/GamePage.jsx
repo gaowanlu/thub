@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import React from 'react';
+import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography } from '@mui/material';
 import LabelBottomNavigation from '../components/LabelBottomNavigation';
 import styled from "styled-components";
@@ -86,6 +86,8 @@ function hitdog(player, dog) {
 }
 
 function GamePage() {
+    const [pingText, setPingText] = useState('');
+
     useEffect(() => {
         const config = {
             type: Phaser.AUTO,
@@ -146,17 +148,38 @@ function GamePage() {
         // 创建场景
         function create() {
             // 创建地图
-            let map = this.make.tilemap({ key: 'map' });
+            let map = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
             // 添加图块集到地图
-            let tiles = map.addTilesetImage('terrain_atlas', 'tiles');
+            let tileset = map.addTilesetImage('terrain_atlas', 'tiles');
+
+            map.setCollisionByProperty({ collides: true });
             // console.log(map);
             // 添加图块层
-            let layer3 = map.createLayer("scene_layer3", tiles, 0, 0);
+            let layer3 = map.createLayer("scene_layer3", tileset, 0, 0);
+            console.log("map", map);
             layer3.setCollisionByExclusion([-1]);
-            let layer1 = map.createLayer("scene_layer1", tiles, 0, 0);
+            // layer3.setCollisionBetween(1, 200);
+            layer3.setInteractive();
+            layer3.on('pointerdown', (pointer, tileX, tileY) => {
+                console.log(`Clicked tile layer3 at (${tileX},${tileY})`);
+            });
+
+            let layer1 = map.createLayer("scene_layer1", tileset, 0, 0);
             layer1.setCollisionByExclusion([-1]);
-            let layer2 = map.createLayer("scene_layer2", tiles, 0, 0);
+            // layer1.setCollisionBetween(1, 200);
+            layer1.setInteractive();
+            layer1.on('pointerdown', (pointer, tileX, tileY) => {
+                console.log(`Clicked tile layer1 at (${tileX},${tileY})`);
+            });
+
+            let layer2 = map.createLayer("scene_layer2", tileset, 0, 0);
             layer2.setCollisionByExclusion([-1]);
+            // layer2.setCollisionBetween(1, 200);
+            layer2.setInteractive();
+            layer2.on('pointerdown', (pointer, tileX, tileY) => {
+                console.log(`Clicked tile layer2 at (${tileX},${tileY})`);
+            });
+
 
             this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
             this.cameras.main.setSize(WIDTH, HEIGHT);
@@ -197,16 +220,16 @@ function GamePage() {
                 setXY: { x: 140, y: 560, stepX: 100, stepY: 0 }
             });
 
-            // 添加动态物体
-            player_before_frame_x = 200;
-            player_before_frame_y = 200;
-            player = this.physics.add.sprite(player_before_frame_x, player_before_frame_y, 'sample_character_08').setScale(1.3).refreshBody();
+            // 创建玩家
+            player_before_frame_x = 250;
+            player_before_frame_y = 270;
+            player = this.physics.add.sprite(player_before_frame_x, player_before_frame_y, 'sample_character_08').setScale(2).refreshBody();
 
             player.setBounce(0.3);// 反弹值
             //player.setCollideWorldBounds(true);// 与边界碰撞
             //player.body.setGravityY(6000);//重力
             //this.physics.world.disable(player);
-            Players[playerUID] = { player: player, message: [] };
+            Players[playerUID] = { player: player, message: [], latestSkipTime: new Date() };
 
             this.anims.create({
                 key: 'left',
@@ -259,20 +282,26 @@ function GamePage() {
             // Load object layer
             let objectLayer = map.getObjectLayer('object_layer1');
 
+            console.log(objectLayer);
+
             if (objectLayer) {
                 // Iterate through objects in the object layer
                 objectLayer.objects.forEach(object => {
+                    console.log(object);
                     // Example: create a sprite at each object's position
                     let sprite = this.physics.add.sprite(object.x, object.y - 32, 'tilesetSprite', object.gid - 1);
                     sprite.setOrigin(0, 0);
                     this.physics.world.enable(sprite);
                     Objects.push(sprite);
+                    sprite.body.setImmovable(true);
                 });
             }
 
 
             Objects.forEach((v, i, arr) => {
-                this.physics.add.collider(player, v);
+                this.physics.add.collider(player, v, () => {
+                    v.setVelocity(0, 0);
+                });
             });
 
 
@@ -310,25 +339,28 @@ function GamePage() {
             for (let i = 0; i < MessageQueue.length; i++) {
                 let data = MessageQueue[i];
                 if (data.Data && data.Data[0]) {
-                    if (data.Data[0].playerUID === playerUID) {
-                        continue;
-                    }
+                    // 自己的发出去的包也要接受
+                    // if (data.Data[0].playerUID === playerUID) {
+                    //     continue;
+                    // }
                     let otherPlayerUID = data.Data[0].playerUID;
-                    if (!Players.hasOwnProperty(otherPlayerUID)) {
+                    if (playerUID !== otherPlayerUID && !Players.hasOwnProperty(otherPlayerUID)) {
                         // 创建角色
                         let x = data.Data[0].x;
                         let y = data.Data[0].y;
-                        let newPlayer = this.physics.add.sprite(x, y, 'sample_character_08').setScale(1.3).refreshBody();
+                        let newPlayer = this.physics.add.sprite(x, y, 'sample_character_08').setScale(2).refreshBody();
                         newPlayer.setBounce(0.3);// 反弹值
                         // newPlayer.setCollideWorldBounds(true);// 与边界碰撞
-                        Players[otherPlayerUID] = { player: newPlayer, message: [] };
+                        Players[otherPlayerUID] = { player: newPlayer, message: [], latestSkipTime: new Date() };
                         // this.physics.add.collider(newPlayer, platforms);
                         this.physics.add.collider(newPlayer, beds1);
                         this.physics.add.collider(newPlayer, beds2);
                         this.physics.add.collider(newPlayer, beds3);
 
                         Objects.forEach((v, i, arr) => {
-                            this.physics.add.collider(newPlayer, v);
+                            this.physics.add.collider(newPlayer, v, () => {
+                                v.setVelocity(0, 0);
+                            });
                         });
 
                     }
@@ -342,23 +374,7 @@ function GamePage() {
             }
             MessageQueue = [];
 
-            // 在每一帧执行的逻辑
-            let currTime = new Date();
-            if (!lastTick) {
-                lastTick = currTime;
-            } else if (currTime < lastTick) {
-                lastTick = currTime;
-            }
-            // 逻辑帧率25
-            if (currTime - lastTick >= 60) {
-                lastTick = currTime;
-                if (LogicFrame.Data.length > 0) {
-                    WS.send(JSON.stringify(LogicFrame));
-                    LogicFrame.Data = [];
-                    LogicFrame.Num++;
-                }
-            }
-
+            // 玩家控制begin
             {
                 let gap_x = player.x - player_before_frame_x;
                 let gap_y = player.y - player_before_frame_y;
@@ -408,6 +424,45 @@ function GamePage() {
                 player.anims.stop();
                 ExistMove = false;
             }
+            // 玩家控制end
+
+            // Adjust the mini-map's camera to follow the player
+            miniMap.scrollX = player.x * 0.1 - 200;
+            miniMap.scrollY = player.y * 0.1 - 200;
+
+            // 逻辑帧begin
+            // 在每一帧执行的逻辑
+            let currTime = new Date();
+            if (!lastTick) {
+                lastTick = currTime;
+            } else if (currTime < lastTick) {
+                lastTick = currTime;
+            }
+            // 逻辑帧
+            if (currTime - lastTick >= 60) {
+                lastTick = currTime;
+                if (LogicFrame.Data.length > 0) {
+                    WS.send(JSON.stringify(LogicFrame));
+                    LogicFrame.Data = [];
+                    LogicFrame.Num++;
+                }
+                // 缓存Player逻辑帧
+                let nowAnims = null;
+                if (ExistMove && player.anims.currentAnim && player.anims.currentAnim.key) {
+                    nowAnims = player.anims.currentAnim.key
+                };
+                LogicFrame.Data.push({
+                    vx: player.body.velocity.x,
+                    vy: player.body.velocity.y,
+                    x: player.x,
+                    y: player.y,
+                    frame: frame++,
+                    anims: nowAnims,
+                    playerUID: playerUID,
+                    Time: currTime
+                });
+            }
+            // 逻辑帧end
 
             // if (cursors.w.isDown && player.body.touching.down) {
             //   player.setVelocityY(-330);
@@ -417,29 +472,25 @@ function GamePage() {
                 game.destroy(true);
             }
 
-            if (ExistMove) {
-                // 缓存Player逻辑帧
-                LogicFrame.Data.push({
-                    vx: player.body.velocity.x,
-                    vy: player.body.velocity.y,
-                    x: player.x,
-                    y: player.y,
-                    frame: frame++,
-                    anims: player.anims.currentAnim.key,
-                    playerUID: playerUID
-                });
-                // Adjust the mini-map's camera to follow the player
-                miniMap.scrollX = player.x * 0.1 - 200;
-                miniMap.scrollY = player.y * 0.1 - 200;
-            }
-
-            // 遍历所有player除了自己
+            // 遍历所有player除了自己,其他玩家消息处理
             for (let key in Players) {
-                if (key === playerUID) {
+                let otherPlayer = Players[key].player;
+
+                // 没消息
+                if (Players[key].message.length <= 0) {
+                    // 时间太长可能掉线了
+                    if (key !== playerUID && currTime - Players[key].latestSkipTime >= 2000) {
+                        otherPlayer.setVisible(false);
+                    }
                     continue;
                 }
 
-                let otherPlayer = Players[key].player;
+                let message = Players[key].message.shift();// 取出收个消息
+                if (key === playerUID) {
+                    setPingText(`${currTime - new Date(message.Time)} ms`);
+                    continue;
+                }
+
                 // Check if the other player is outside the camera's visible bounds
                 const relativeX = otherPlayer.x - this.cameras.main.worldView.x;
                 const relativeY = otherPlayer.y - this.cameras.main.worldView.y;
@@ -449,23 +500,24 @@ function GamePage() {
                 // console.log({ relativeX, relativeY, x: otherPlayer.x, y: otherPlayer.y });
                 otherPlayer.setVisible(!canBeView);
 
-                if (Players[key].message.length <= 0) {
-                    Players[key].player.setVelocityX(0);
-                    Players[key].player.setVelocityY(0);
-                    Players[key].player.anims.stop();
-                    continue;
-                }
-                let message = Players[key].message.shift();
-                let gapX = Players[key].player.x - message.x;
-                let gapY = Players[key].player.y - message.y;
-                if (Math.abs(gapX) >= 4 || Math.abs(gapY) >= 4) {
+                // 进行矫正同步下位置 1s同步5次
+                // let gapX = Players[key].player.x - message.x;
+                // let gapY = Players[key].player.y - message.y;
+                if (currTime - Players[key].latestSkipTime >= 200) {
                     Players[key].player.x = message.x;
                     Players[key].player.y = message.y;
+                    Players[key].latestSkipTime = currTime;
                 }
 
+                // 设置速度
                 Players[key].player.setVelocityX(message.vx);
                 Players[key].player.setVelocityY(message.vy);
-                Players[key].player.anims.play(message.anims, true);
+                if (message.anims) {
+                    Players[key].player.anims.play(message.anims, true);
+                }
+                else {
+                    Players[key].player.anims.stop();
+                }
             }
 
         }
@@ -485,6 +537,7 @@ function GamePage() {
                 </Toolbar>
             </MyAppBar>
             <MyContainer>
+                <p>{pingText}</p>
                 <Typography id="phaser-game-container" align="center"></Typography>
             </MyContainer>
             <LabelBottomNavigation />
