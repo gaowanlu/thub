@@ -1,10 +1,11 @@
 import Phaser from "phaser";
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
 import LabelBottomNavigation from '../components/LabelBottomNavigation';
 import styled from "styled-components";
 import Footer from "../components/MyFooter";
 import { ThemeProvider } from '@mui/material/styles';
+import MyAppBar from "../components/MyAppBar";
 
 import { useEffect } from 'react';
 import WS from "../ws/WS";
@@ -14,7 +15,7 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
     palette: {
         primary: {
-            main: '#3131b1e3', // Your desired primary color
+            main: 'rgba(59,130,246,.9)', // Your desired primary color
         },
     },
 });
@@ -124,9 +125,14 @@ function GamePage() {
             console.log(event);
         };
         WS.message = (event) => {
-            //console.log(event);
-            MessageQueue.push(JSON.parse(event.data));
-            //console.log(MessageQueue);
+            try {
+                let newJsonData = JSON.parse(event.data);
+                //console.log(event);
+                MessageQueue.push(newJsonData);
+                //console.log(MessageQueue);
+            } catch (err) {
+                console.error(err);
+            }
         };
         WS.error = (event) => {
             console.log(event);
@@ -531,11 +537,7 @@ function GamePage() {
     }, []);//仅在组件挂载时运行
     return (
         <ThemeProvider theme={theme}>
-            <MyAppBar position="static">
-                <Toolbar>
-                    <Typography sx={{ color: "#ffffff" }}><b>TUBEKIT</b></Typography>
-                </Toolbar>
-            </MyAppBar>
+            <MyAppBar />
             <MyContainer>
                 <p>{pingText}</p>
                 <Typography id="phaser-game-container" align="center"></Typography>
@@ -545,9 +547,6 @@ function GamePage() {
         </ThemeProvider >
     );
 }
-
-const MyAppBar = styled(AppBar)`
-`;
 
 const MyContainer = styled.div`
     border-radius: 0.5rem;

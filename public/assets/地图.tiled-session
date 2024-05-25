@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "",
+    "activeFile": "地图.tmx",
     "expandedProjectPaths": [
         "."
     ],
@@ -48,15 +48,15 @@
             "expandedObjectLayers": [
                 7
             ],
-            "scale": 0.5,
+            "scale": 0.75,
             "selectedLayer": 3,
             "viewCenter": {
-                "x": 1063,
-                "y": 815
+                "x": 811.3333333333333,
+                "y": 526
             }
         },
         "地图.tmx#terrain_atlas": {
-            "scaleInDock": 0.33
+            "scaleInDock": 0.75
         }
     },
     "last.exportedFilePath": "C:/Users/gaowanlu/Desktop/MyProject/thub/public/assets",
